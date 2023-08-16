@@ -3,13 +3,14 @@ from typing import AsyncGenerator
 
 import sentry_sdk
 from fastapi import FastAPI
-from redis import asyncio as aioredis
 from starlette.middleware.cors import CORSMiddleware
 
+from redis import asyncio as aioredis
 from src import redis
-from src.auth.router import router as auth_router
 from src.config import app_configs, settings
 from src.database import database
+from src.stats import router as stats_router
+from src.transactions import router as transactions_router
 
 
 @asynccontextmanager
@@ -46,9 +47,10 @@ if settings.ENVIRONMENT.is_deployed:
     )
 
 
+app.include_router(transactions_router, prefix="/transactions", tags=["Transactions"])
+app.include_router(stats_router, tags=["Stats"])
+
+
 @app.get("/healthcheck", include_in_schema=False)
 async def healthcheck() -> dict[str, str]:
     return {"status": "ok"}
-
-
-app.include_router(auth_router, prefix="/auth", tags=["Auth"])
