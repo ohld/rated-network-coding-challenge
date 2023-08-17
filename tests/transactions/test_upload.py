@@ -23,7 +23,6 @@ async def test_upload_bulk(client: TestClient, monkeypatch: pytest.MonkeyPatch) 
     assert resp.status_code == 200
 
     stats_data = resp.json()
-    print(stats_data)
     assert stats_data["total_transactions_in_db"] >= len(tx_hashes)
 
             
