@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from databases.interfaces import Record
@@ -7,11 +8,12 @@ from sqlalchemy.dialects.postgresql import insert
 from src.database import database, transactions
 from src.transactions.prices import get_eth_price
 
+logger = logging.getLogger(__name__)
+
 
 # TODO: query only compact data?
 async def get_transaction_by_hash(tx_hash: str) -> Record | None:
     select_query = select(transactions).where(transactions.c.hash == tx_hash)
-
     return await database.fetch_one(select_query)
 
 
@@ -58,12 +60,14 @@ async def set_transaction_usd_price(tx_hash: str, gas_used_usd: float) -> None:
 
 
 async def calculate_transaction_gas_used_usd(
-    tx_hash: str, 
-    block_timestamp: datetime, 
-    gas_used_gwei: float
+    tx_hash: str, block_timestamp: datetime, gas_used_gwei: float
 ) -> None:
     eth_price = await get_eth_price(block_timestamp)
-    print("eth_price: ", eth_price)
+    if eth_price is None:
+        logger.warning(
+            f"Failed to query eth_price for block_timestamp: {block_timestamp}"
+        )
+        return
 
     gas_used_usd = eth_price * gas_used_gwei / 10**9
 

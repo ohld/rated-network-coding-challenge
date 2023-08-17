@@ -1,7 +1,8 @@
-import httpx
 import asyncio
 import logging
 from datetime import datetime
+
+import httpx
 
 from src import redis
 from src.redis import RedisData
@@ -17,25 +18,28 @@ async def _get_cached_eth_price(unix_ts: int) -> float | None:
     return float(token_price)
 
 
-async def get_eth_price(block_datetime: datetime) -> float:
-    unix_ts = int(block_datetime.timestamp()) // 3600 * 3600  # TODO: lambda unix_ts_rounded_hourly
+async def get_eth_price(block_datetime: datetime) -> float | None:
+    unix_ts = (
+        int(block_datetime.timestamp()) // 3600 * 3600
+    )  # TODO: lambda unix_ts_rounded_hourly
 
     eth_price = await _get_cached_eth_price(unix_ts)
     if not eth_price:
         eth_price = await _request_eth_price(unix_ts)  # type: ignore
         if not eth_price:
-            return {}
+            return None
 
         asyncio.create_task(_cache_eth_price(unix_ts, eth_price))
 
     return eth_price
 
 
-async def _request_eth_price(unix_ts: int) -> dict[str, dict[str, dict[str, float]]]:
+# TODO: handle coingecko potential fails
+async def _request_eth_price(unix_ts: int) -> float:
     """
-        Assuming that we need only hourly prices:
-        1. Round timestamp
-        2. Query
+    Assuming that we need only hourly prices:
+    1. Round timestamp
+    2. Query
     """
     logger.info(f"Requesting eth price from Coingecko for {unix_ts}")
 

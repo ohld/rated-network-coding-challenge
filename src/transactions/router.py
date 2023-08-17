@@ -29,8 +29,10 @@ async def save_transaction_data(
     worker: BackgroundTasks,
 ) -> None:
     await service.insert_transaction_data(data)
-    
+
     worker.add_task(
         service.calculate_transaction_gas_used_usd,
-        data.hash, data.block_timestamp, data.gas_used_gwei,
+        data.hash,
+        data.block_timestamp,
+        data.gas_used_gwei,
     )

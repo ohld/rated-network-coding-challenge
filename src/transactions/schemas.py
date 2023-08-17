@@ -1,8 +1,8 @@
-from typing import Any
-from decimal import Decimal
 from datetime import datetime
+from decimal import Decimal
+from typing import Any
 
-from pydantic import BaseModel, validator, root_validator
+from pydantic import BaseModel, root_validator, validator
 
 from src.models import ORJSONModel
 
@@ -40,15 +40,12 @@ class TransactionInsert(BaseModel):
     receipts_effective_gas_price: float
     gas_used_gwei: float | None
 
-
     @validator("block_timestamp", pre=True)
     def parse_block_timestamp(cls, value: str) -> datetime:
-        input_datetime_format = '%Y-%m-%d %H:%M:%S.%f %Z'
+        input_datetime_format = "%Y-%m-%d %H:%M:%S.%f %Z"
         return datetime.strptime(value, input_datetime_format)
-    
 
     @root_validator(skip_on_failure=True)
     def set_tx_url(cls, data: dict[str, Any]) -> dict[str, Any]:
-        data["gas_used_gwei"] =  data["receipts_gas_used"] * data["gas_price"] / 10**9
+        data["gas_used_gwei"] = data["receipts_gas_used"] * data["gas_price"] / 10**9
         return data
-

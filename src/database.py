@@ -51,4 +51,3 @@ transactions = Table(
     Column("gas_used_gwei", Numeric),
     Column("gas_used_usd", Numeric),
 )
-
