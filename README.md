@@ -1,32 +1,50 @@
 # Rated Network Coding Challenge
-Original repo: https://github.com/rated-network/coding-challenge/
+Original repo with task description: https://github.com/rated-network/coding-challenge/
 
-Built with [FastAPI best practices](https://github.com/zhanymkanov/fastapi-best-practices) in mind.
+Built with [FastAPI best practices](https://github.com/zhanymkanov/fastapi-best-practices) in mind using [FastAPI production template](https://github.com/zhanymkanov/fastapi_production_template).
 
 
-This repo is kind of a template I use when starting up new FastAPI projects:
-- production-ready
-  - gunicorn with dynamic workers configuration (stolen from [@tiangolo](https://github.com/tiangolo))
-  - Dockerfile optimized for small size and fast builds with a non-root user
-  - JSON logs
-  - sentry for deployed envs
-- easy local development
-  - environment with configured postgres and redis
-  - script to lint code with `black`, `autoflake`, `isort` (also stolen from [@tiangolo](https://github.com/tiangolo))
-  - configured pytest with `async-asgi-testclient`, `pytest-env`, `pytest-asyncio`
-  - fully typed to comply with `mypy`
-- SQLAlchemy with slightly configured `alembic`
-  - async db calls with `asyncpg`
-  - set up `sqlalchemy2-stubs`
-  - migrations set in easy to sort format (`YYYY-MM-DD_slug`)
-- pre-installed JWT authorization
-  - short-lived access token
-  - long-lived refresh token which is stored in http-only cookies
-  - salted password storage with `bcrypt`
-- global pydantic model with 
-  - `orjson`
-  - explicit timezone setting during JSON export
-- and some other extras like global exceptions, sqlalchemy keys naming convention, shortcut scripts for alembic, etc.
+## What's inside
+
+### GET `/stats` (src/stats/router.py)
+
+``` json
+{
+  "total_transactions_in_db": 5000,
+  "total_gas_used_gwei": 10492553722.431274,
+  "total_gas_cost_in_usd": 19219.824439832475
+}
+```
+
+### POST `/transactions` (src/transactions/router.py)
+
+Creates transaction in db, returns nothing (for simplicity). Boilerplate to integrate streams further. 
+1. Stores raw data
+2. Calculates `gas_used_gwei` on the fly
+3. Background task to calculate `gas_used_usd` using Coingecko API (cached with Redis)
+
+### GET `/transactions/{tx_hash}` (src/transactions/router.py)
+
+Returns TransactionCompactResponse:
+``` json
+{
+  "hash": "0x06568e8d3c76f6961c650c3b2c9404c79b3bb14138051313b9a74e6255d02140",
+  "from_address": "0x7f21c6ab63892ed9db38f5b79d0fadaf4ec79a42",
+  "to_address": "0x7a097dbacb237d6b6a047368f43514992510bb79",
+  "block_number": 17818510,
+  "block_timestamp": "2023-08-01T06:58:35+0000",
+  "gas_used_gwei": 399397.655979,
+  "gas_used_usd": 0.7305556709464458
+}
+```
+
+### Tests
+
+1. tx data upload + proper get response with calculated fields (`gas_used_gwei`, `gas_used_usd`)
+2. txs data upload from csv file + proper /stats response
+
+I didn't test the Coingecko API integration and didn't write fallbacks in case it will not be available at some point.
+
 
 ## Local Development
 
