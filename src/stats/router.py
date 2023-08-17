@@ -11,10 +11,5 @@ router = APIRouter()
 @router.get("/stats", response_model=StatsResponse)
 async def get_transaction_by_hash() -> dict[str, Any]:
     stats_data = await get_transactions_table_stats()
-    return stats_data
-
-    # return {
-    #     "totalTransactionsInDB": total_transactions,
-    #     "totalGasUsed": total_gas_used,
-    #     "totalGasCostInDollars": total_gas_cost_in_dollars
-    # }
+    print(f"stats_data: {stats_data}")
+    return StatsResponse.parse_obj(stats_data)

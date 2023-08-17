@@ -1,8 +1,11 @@
+from datetime import datetime
+
 from databases.interfaces import Record
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 
 from src.database import database, transactions
+from src.transactions.prices import get_eth_price
 
 
 # TODO: query only compact data?
@@ -36,9 +39,7 @@ async def insert_transaction_data(transaction_data):
             receipts_root=transaction_data.receipts_root,
             receipts_status=transaction_data.receipts_status,
             receipts_effective_gas_price=transaction_data.receipts_effective_gas_price,
-            gas_used_gwei=transaction_data.receipts_gas_used
-            * transaction_data.gas_price
-            / 10**9,
+            gas_used_gwei=transaction_data.gas_used_gwei,
         )
         .on_conflict_do_nothing()  # TODO: specify constraint
     )
@@ -46,7 +47,7 @@ async def insert_transaction_data(transaction_data):
     await database.fetch_one(insert_query)
 
 
-async def set_transaction_usd_price(tx_hash, gas_used_usd) -> None:
+async def set_transaction_usd_price(tx_hash: str, gas_used_usd: float) -> None:
     update_query = (
         update(transactions)
         .values({"gas_used_usd": gas_used_usd})
@@ -54,3 +55,16 @@ async def set_transaction_usd_price(tx_hash, gas_used_usd) -> None:
     )
 
     await database.execute(update_query)
+
+
+async def calculate_transaction_gas_used_usd(
+    tx_hash: str, 
+    block_timestamp: datetime, 
+    gas_used_gwei: float
+) -> None:
+    eth_price = await get_eth_price(block_timestamp)
+    print("eth_price: ", eth_price)
+
+    gas_used_usd = eth_price * gas_used_gwei / 10**9
+
+    await set_transaction_usd_price(tx_hash, gas_used_usd)

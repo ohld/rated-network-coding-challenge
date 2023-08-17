@@ -1,8 +1,8 @@
 """add_tx_table
 
-Revision ID: 7de246bae26f
+Revision ID: 3e02b2a9571e
 Revises: 
-Create Date: 2023-08-16 19:13:39.912518
+Create Date: 2023-08-17 11:25:24.180946
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = "7de246bae26f"
+revision = "3e02b2a9571e"
 down_revision = None
 branch_labels = None
 depends_on = None

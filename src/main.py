@@ -9,8 +9,8 @@ from redis import asyncio as aioredis
 from src import redis
 from src.config import app_configs, settings
 from src.database import database
-from src.stats import router as stats_router
-from src.transactions import router as transactions_router
+from src.stats.router import router as stats_router
+from src.transactions.router import router as transactions_router
 
 
 @asynccontextmanager
@@ -29,7 +29,7 @@ async def lifespan(_application: FastAPI) -> AsyncGenerator:
     await redis.redis_client.close()
 
 
-app = FastAPI(**app_configs, lifespan=lifespan)
+app = FastAPI(**app_configs)  # , lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -40,6 +40,7 @@ app.add_middleware(
     allow_headers=settings.CORS_HEADERS,
 )
 
+
 if settings.ENVIRONMENT.is_deployed:
     sentry_sdk.init(
         dsn=settings.SENTRY_DSN,
@@ -47,10 +48,24 @@ if settings.ENVIRONMENT.is_deployed:
     )
 
 
-app.include_router(transactions_router, prefix="/transactions", tags=["Transactions"])
 app.include_router(stats_router, tags=["Stats"])
+app.include_router(transactions_router, prefix="/transactions", tags=["Transactions"])
 
 
 @app.get("/healthcheck", include_in_schema=False)
 async def healthcheck() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.on_event("startup")
+async def startup() -> None:
+    pool = aioredis.ConnectionPool.from_url(settings.REDIS_URL, max_connections=10, decode_responses=True)
+    redis.redis_client = aioredis.Redis(connection_pool=pool)
+    await database.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    await database.disconnect()
+    if redis is not None and redis.redis_client is not None:
+        await redis.redis_client.close()

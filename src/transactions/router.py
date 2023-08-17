@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks
 
 from src.transactions import service
 from src.transactions.exceptions import TransactionNotFound
@@ -8,7 +8,7 @@ router = APIRouter()
 
 
 @router.get(
-    "/{hash}",
+    "/{tx_hash}",
     response_model=TransactionCompactResponse,
 )
 async def get_transaction_by_hash(tx_hash: str) -> TransactionCompactResponse:
@@ -17,28 +17,20 @@ async def get_transaction_by_hash(tx_hash: str) -> TransactionCompactResponse:
     if not requested_tx:
         raise TransactionNotFound()
 
-    return TransactionCompactResponse(requested_tx)
+    return TransactionCompactResponse.parse_obj(requested_tx)
 
 
+# TODO: proper response scheme according to bis req
 @router.post(
-    "/{hash}",
-    response_model=TransactionCompactResponse,
+    "/",
 )
-async def save_transaction_data(transaction_data: TransactionInsert) -> None:
-    await service.insert_transaction_data(transaction_data)
-
-    # from_address: str
-    # to_address: str
-    # block_number: int
-    # gas_used: int
-
-
-#     {
-#   "hash": "0xaaaaa",
-#   "fromAddress": "0x000000",
-#   "toAddress": "0x000001",
-#   "blockNumber": 1234,
-#   "executedAt": "Jul-04-2022 12:02:24 AM +UTC",
-#   "gasUsed": 12345678,
-#   "gasCostInDollars": 4.23,
-# }
+async def save_transaction_data(
+    data: TransactionInsert,
+    worker: BackgroundTasks,
+) -> None:
+    await service.insert_transaction_data(data)
+    
+    worker.add_task(
+        service.calculate_transaction_gas_used_usd,
+        data.hash, data.block_timestamp, data.gas_used_gwei,
+    )

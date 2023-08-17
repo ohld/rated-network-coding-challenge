@@ -28,3 +28,7 @@ async def get_by_key(key: str) -> Optional[str]:
 
 async def delete_by_key(key: str) -> None:
     return await redis_client.delete(key)
+
+
+def get_eth_price_key(unix_ts: int) -> str:
+    return f"tokens:eth:price:{unix_ts}"
