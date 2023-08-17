@@ -4,7 +4,8 @@ from src.database import database
 
 
 async def get_transactions_table_stats() -> Record | None:
-    # I personally prefer raw SQL queries ranther than ORM syntax
+    # I personally prefer raw SQL queries for complex stuff
+    # rather than ORM syntax
     select_query = """
         SELECT 
             COUNT(*) AS total_transactions_in_db,
@@ -12,6 +13,5 @@ async def get_transactions_table_stats() -> Record | None:
             SUM(gas_used_usd) AS total_gas_cost_in_usd
         FROM transactions ps
     """
-    # Should I somehow work on the case when the db is empty?
 
     return await database.fetch_one(select_query)

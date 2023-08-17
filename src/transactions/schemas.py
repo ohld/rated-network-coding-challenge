@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from pydantic import BaseModel, root_validator, validator
+from pydantic import root_validator, validator
 
 from src.models import ORJSONModel
 
@@ -17,20 +17,20 @@ class TransactionCompactResponse(ORJSONModel):
     gas_used_usd: Decimal | None
 
 
-class TransactionInsert(BaseModel):
+class TransactionInsert(ORJSONModel):
     hash: str
     nonce: int
     block_hash: str
     block_number: int
     transaction_index: int
     from_address: str
-    to_address: str
+    to_address: str | None  # there were missing values in test data
     value: float
     gas: int
     gas_price: int
     block_timestamp: datetime
-    max_fee_per_gas: float
-    max_priority_fee_per_gas: float
+    max_fee_per_gas: float | None
+    max_priority_fee_per_gas: float | None
     transaction_type: str
     receipts_cumulative_gas_used: int
     receipts_gas_used: int
