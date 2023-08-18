@@ -1,5 +1,3 @@
-from typing import Any
-
 from fastapi import APIRouter
 
 from src.stats.schemas import StatsResponse

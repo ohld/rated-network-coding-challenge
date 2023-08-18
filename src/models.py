@@ -24,10 +24,9 @@ class ORJSONModel(BaseModel):
         json_encoders = {datetime: convert_datetime_to_gmt}
         allow_population_by_field_name = True
 
-
     # not sure if that's a good practice
-    @validator('*', pre=True)
+    @validator("*", pre=True)
     def empty_str_to_none(cls, v):
-        if v == '':
+        if v == "":
             return None
         return v
