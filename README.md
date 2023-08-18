@@ -3,6 +3,22 @@ Original repo with task description: https://github.com/rated-network/coding-cha
 
 Built with [FastAPI best practices](https://github.com/zhanymkanov/fastapi-best-practices) in mind using [FastAPI production template](https://github.com/zhanymkanov/fastapi_production_template).
 
+# Quick start
+
+``` bash
+
+git clone https://github.com/ohld/rated-network-coding-challenge
+cd rated-network-coding-challenge
+
+cp .env.example .env
+docker network create app_main
+docker-compose up -d --build
+
+# apply migrations & upload sample data
+docker compose exec app migrate
+docker compose exec app python ./tests/upload_tx_data.py
+```
+
 
 ## What's inside
 

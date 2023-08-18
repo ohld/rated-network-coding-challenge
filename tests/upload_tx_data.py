@@ -6,7 +6,12 @@
 import csv
 import httpx
 
-with open("./tests/data/ethereum_txs.csv", "r") as f:
+FILEPATH = "./tests/data/ethereum_txs.csv"
+
+print(f"I'm going to upload transactions from {FILEPATH} by querying POST /transactions endpoint for each transaction.")
+print(f"You can open http://localhost:8000/docs to check /stats endpoint.")
+
+with open(FILEPATH, "r") as f:
     csv_reader = csv.DictReader(f)
     for row in csv_reader:
         r = httpx.post(

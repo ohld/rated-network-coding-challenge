@@ -1,0 +1,7 @@
+#!/bin/sh -e
+
+# migrate
+alembic upgrade head
+
+# upload test txs to db
+python ./tests/upload_tx_data.py
