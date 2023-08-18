@@ -14,10 +14,14 @@ cp .env.example .env
 docker network create app_main
 docker-compose up -d --build
 
-# apply migrations & upload sample data
+# apply migrations to local db
 docker compose exec app migrate
+
+# upload sample data
 docker compose exec app python ./tests/upload_tx_data.py
 ```
+
+I'd suggest to run the latter command separately to let docker image run for a couple seconds. Otherwise phantom errors like `Cannot assign requested address` for localhost may occur. 🤷
 
 
 ## What's inside
